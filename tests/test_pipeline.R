@@ -215,6 +215,7 @@ cat("========================================\n\n")
 
 # 如果作为脚本运行 / If running as script
 if (!interactive()) {
-  test_results <- test_dir(".", reporter = "summary")
+  # 使用testthat运行当前文件中的测试 / Run tests in current file using testthat
+  test_results <- test_file(sys.frame(1)$ofile, reporter = "summary")
   print(test_results)
 }

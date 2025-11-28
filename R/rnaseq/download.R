@@ -162,7 +162,15 @@ download_rnaseq_supp_files <- function(gse_id, dest_dir) {
         if (grepl("\\.gz$", f) && file.exists(f)) {
           message(paste0("解压 / Extracting: ", basename(f)))
           tryCatch({
-            R.utils::gunzip(f, remove = FALSE, overwrite = TRUE)
+            if (requireNamespace("R.utils", quietly = TRUE)) {
+              R.utils::gunzip(f, remove = FALSE, overwrite = TRUE)
+            } else {
+              # 使用base R方法解压 / Use base R method for decompression
+              out_file <- sub("\\.gz$", "", f)
+              con <- gzfile(f, "rb")
+              writeLines(readLines(con), out_file)
+              close(con)
+            }
           }, error = function(e) NULL)
         }
       }

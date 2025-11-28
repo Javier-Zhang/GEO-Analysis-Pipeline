@@ -212,7 +212,11 @@ mod_download_server <- function(id, r = reactiveValues()) {
           
           if (input$data_type == "microarray") {
             # 微阵列数据下载 / Microarray data download
-            source("R/microarray/download.R", local = TRUE)
+            # 注意：在Shiny应用中，这些函数应通过app.R中的source()预加载
+            # Note: In Shiny app, these functions should be pre-loaded via source() in app.R
+            if (!exists("download_geo_data")) {
+              source("R/microarray/download.R", local = FALSE)
+            }
             
             result <- download_geo_data(
               gse_id = input$gse_id,
@@ -223,7 +227,9 @@ mod_download_server <- function(id, r = reactiveValues()) {
             
           } else {
             # RNA-seq数据下载 / RNA-seq data download
-            source("R/rnaseq/download.R", local = TRUE)
+            if (!exists("download_rnaseq_data")) {
+              source("R/rnaseq/download.R", local = FALSE)
+            }
             
             result <- download_rnaseq_data(
               gse_id = input$gse_id,

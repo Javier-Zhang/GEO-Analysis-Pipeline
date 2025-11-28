@@ -245,20 +245,16 @@ body {
 }
 
 /* 响应式 / Responsive */
+/* Note: shinydashboard handles sidebar toggle via JavaScript automatically */
+/* 注意：shinydashboard自动处理侧边栏切换的JavaScript */
 @media (max-width: 768px) {
-  .sidebar {
-    position: fixed;
-    width: 250px;
-    left: -250px;
-    transition: left 0.3s ease;
-  }
-  
-  .sidebar.active {
-    left: 0;
-  }
-  
   .small-box h3 {
     font-size: 1.5em;
+  }
+  
+  /* Adjust content padding on mobile */
+  .content-wrapper {
+    margin-left: 0 !important;
   }
 }
 

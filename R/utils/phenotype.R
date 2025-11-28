@@ -171,14 +171,6 @@ clean_phenotype_columns <- function(pdata) {
   na_cols <- sapply(pdata, function(x) all(is.na(x)))
   pdata <- pdata[, !na_cols, drop = FALSE]
   
-  # 移除只有一个唯一值的列（除了关键列）/ Remove columns with single unique value
-  # key_cols <- c("geo_accession", "title")
-  # for (col in setdiff(colnames(pdata), key_cols)) {
-  #   if (length(unique(na.omit(pdata[[col]]))) <= 1) {
-  #     pdata[[col]] <- NULL
-  #   }
-  # }
-  
   return(pdata)
 }
 
