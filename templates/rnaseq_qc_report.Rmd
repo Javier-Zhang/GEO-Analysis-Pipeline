@@ -1,0 +1,196 @@
+---
+title: "RNA-seq QC Report / RNA-seq质控报告"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+    highlight: tango
+params:
+  gse_id: "Unknown"
+  qc_results: NULL
+  counts: NULL
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(ggplot2)
+library(plotly)
+library(DT)
+library(pheatmap)
+```
+
+# 数据集信息 / Dataset Information
+
+**GSE ID:** `r params$gse_id`
+
+**分析日期 / Analysis Date:** `r Sys.Date()`
+
+```{r dataset-info}
+if (!is.null(params$counts)) {
+  cat(sprintf("- 基因数 / Number of genes: %d\n", nrow(params$counts)))
+  cat(sprintf("- 样本数 / Number of samples: %d\n", ncol(params$counts)))
+  cat(sprintf("- 总读数 / Total reads: %s\n", format(sum(params$counts), big.mark = ",")))
+}
+```
+
+# 质控摘要 / QC Summary
+
+```{r qc-summary}
+if (!is.null(params$qc_results)) {
+  qc <- params$qc_results
+  
+  summary_df <- data.frame(
+    Metric = c("样本数 / Samples", "异常样本数 / Outliers",
+               "中位读数 / Median Reads", "中位检测率 / Median Detection",
+               "PC1方差 / PC1 Variance", "PC2方差 / PC2 Variance"),
+    Value = c(
+      qc$summary$n_samples,
+      qc$summary$n_outliers,
+      format(qc$summary$median_reads, big.mark = ","),
+      paste0(round(qc$summary$median_detection_rate, 1), "%"),
+      paste0(round(qc$summary$pca_var_pc1, 1), "%"),
+      paste0(round(qc$summary$pca_var_pc2, 1), "%")
+    )
+  )
+  
+  knitr::kable(summary_df, col.names = c("指标 / Metric", "值 / Value"))
+}
+```
+
+# 文库统计 / Library Statistics
+
+```{r library-stats}
+if (!is.null(params$qc_results) && !is.null(params$qc_results$library_stats)) {
+  DT::datatable(
+    params$qc_results$library_stats,
+    options = list(pageLength = 10, scrollX = TRUE),
+    rownames = FALSE
+  ) %>%
+    DT::formatRound(columns = c("mean_counts_per_gene", "median_counts_per_gene"), digits = 1)
+}
+```
+
+# 质控图表 / QC Plots
+
+## 文库大小 / Library Size
+
+```{r library-size, fig.width=12, fig.height=6}
+if (!is.null(params$qc_results) && !is.null(params$qc_results$library_stats)) {
+  lib_df <- params$qc_results$library_stats
+  lib_df$sample_id <- factor(lib_df$sample_id, levels = lib_df$sample_id[order(lib_df$total_counts)])
+  
+  p <- ggplot(lib_df, aes(x = sample_id, y = total_counts / 1e6)) +
+    geom_bar(stat = "identity", fill = "steelblue") +
+    coord_flip() +
+    labs(title = "Library Size / 文库大小",
+         x = "Sample / 样本",
+         y = "Total Counts (millions) / 总读数（百万）") +
+    theme_minimal()
+  
+  print(p)
+}
+```
+
+## 基因检测率 / Gene Detection Rate
+
+```{r detection-rate, fig.width=12, fig.height=6}
+if (!is.null(params$qc_results) && !is.null(params$qc_results$library_stats)) {
+  det_df <- params$qc_results$library_stats
+  det_df$sample_id <- factor(det_df$sample_id, levels = det_df$sample_id[order(det_df$detection_rate)])
+  
+  p <- ggplot(det_df, aes(x = sample_id, y = detection_rate)) +
+    geom_bar(stat = "identity", fill = "darkgreen") +
+    coord_flip() +
+    labs(title = "Gene Detection Rate / 基因检测率",
+         x = "Sample / 样本",
+         y = "Detection Rate (%) / 检测率（%）") +
+    theme_minimal()
+  
+  print(p)
+}
+```
+
+## 表达分布 / Expression Distribution
+
+```{r expression-distribution, fig.width=12, fig.height=6}
+if (!is.null(params$counts)) {
+  log_counts <- log2(params$counts + 1)
+  n_samples <- min(10, ncol(log_counts))
+  
+  plot(density(log_counts[, 1], na.rm = TRUE),
+       main = "Expression Distribution (log2) / 表达分布",
+       xlab = "log2(counts + 1)",
+       ylab = "Density / 密度",
+       col = 1, ylim = c(0, 0.5))
+  
+  for (i in 2:n_samples) {
+    lines(density(log_counts[, i], na.rm = TRUE), col = i)
+  }
+}
+```
+
+## 样本相关性热图 / Correlation Heatmap
+
+```{r correlation-heatmap, fig.width=10, fig.height=10}
+if (!is.null(params$qc_results) && !is.null(params$qc_results$correlation_matrix)) {
+  pheatmap(
+    params$qc_results$correlation_matrix,
+    color = colorRampPalette(c("blue", "white", "red"))(100),
+    main = "Sample Correlation (Spearman) / 样本相关性",
+    show_rownames = ncol(params$qc_results$correlation_matrix) <= 30,
+    show_colnames = ncol(params$qc_results$correlation_matrix) <= 30
+  )
+}
+```
+
+## PCA分析 / PCA Analysis
+
+```{r pca-plot, fig.width=10, fig.height=8}
+if (!is.null(params$qc_results) && !is.null(params$qc_results$pca_results)) {
+  pca_df <- data.frame(
+    PC1 = params$qc_results$pca_results$scores[, 1],
+    PC2 = params$qc_results$pca_results$scores[, 2],
+    Sample = rownames(params$qc_results$pca_results$scores)
+  )
+  
+  var_exp <- params$qc_results$pca_results$var_explained
+  
+  p <- ggplot(pca_df, aes(x = PC1, y = PC2, label = Sample)) +
+    geom_point(size = 3, color = "steelblue") +
+    theme_minimal() +
+    labs(
+      title = "PCA Plot / PCA图",
+      x = paste0("PC1 (", round(var_exp[1], 1), "%)"),
+      y = paste0("PC2 (", round(var_exp[2], 1), "%)")
+    )
+  
+  if (nrow(pca_df) <= 30) {
+    p <- p + geom_text(vjust = -0.5, size = 3)
+  }
+  
+  print(p)
+}
+```
+
+# 异常样本 / Outlier Samples
+
+```{r outliers}
+if (!is.null(params$qc_results) && !is.null(params$qc_results$outliers)) {
+  outliers <- params$qc_results$outliers$all_outliers
+  
+  if (length(outliers) > 0) {
+    cat("检测到以下异常样本 / Detected outlier samples:\n\n")
+    for (s in outliers) {
+      cat(paste0("- ", s, "\n"))
+    }
+  } else {
+    cat("未检测到异常样本 / No outlier samples detected")
+  }
+}
+```
+
+---
+
+*Report generated by GEO-Analysis-Pipeline*

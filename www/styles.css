@@ -1,0 +1,324 @@
+/* ============================================================================
+ * GEO Analysis Pipeline - Shiny Styles
+ * GEO数据分析流程 - Shiny样式
+ * ============================================================================ */
+
+/* 全局样式 / Global Styles */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f5f5f5;
+}
+
+/* 导航栏 / Navbar */
+.navbar {
+  background-color: #2c3e50 !important;
+  border: none;
+}
+
+.navbar-brand {
+  font-weight: bold;
+  font-size: 1.4em;
+}
+
+/* 侧边栏 / Sidebar */
+.sidebar {
+  background-color: #34495e;
+  min-height: 100vh;
+}
+
+.sidebar .nav-link {
+  color: #ecf0f1;
+  padding: 12px 20px;
+  border-left: 3px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.sidebar .nav-link:hover {
+  background-color: #3d566e;
+  border-left-color: #3498db;
+}
+
+.sidebar .nav-link.active {
+  background-color: #3498db;
+  border-left-color: #2980b9;
+}
+
+/* 盒子样式 / Box Styles */
+.box {
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.box-header {
+  border-bottom: 1px solid #eee;
+  padding: 15px;
+}
+
+.box-title {
+  font-size: 1.1em;
+  font-weight: 600;
+}
+
+/* 值框 / Value Boxes */
+.small-box {
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.small-box:hover {
+  transform: translateY(-3px);
+}
+
+.small-box h3 {
+  font-size: 2.2em;
+  font-weight: bold;
+}
+
+.small-box p {
+  font-size: 1em;
+}
+
+/* 按钮样式 / Button Styles */
+.btn-primary {
+  background-color: #3498db;
+  border-color: #2980b9;
+  border-radius: 5px;
+  padding: 10px 20px;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+}
+
+.btn-success {
+  background-color: #27ae60;
+  border-color: #1e8449;
+  border-radius: 5px;
+}
+
+.btn-warning {
+  background-color: #f39c12;
+  border-color: #d68910;
+  border-radius: 5px;
+}
+
+.btn-danger {
+  background-color: #e74c3c;
+  border-color: #c0392b;
+  border-radius: 5px;
+}
+
+/* 输入框 / Input Fields */
+.form-control {
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  padding: 10px 15px;
+  transition: border-color 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+}
+
+/* 下拉菜单 / Select Inputs */
+.selectize-input {
+  border-radius: 5px;
+  padding: 10px 15px;
+}
+
+/* 滑块 / Sliders */
+.irs--shiny .irs-bar {
+  background: #3498db;
+}
+
+.irs--shiny .irs-handle {
+  border-color: #3498db;
+}
+
+/* 表格样式 / Table Styles */
+.dataTable {
+  font-size: 0.9em;
+}
+
+.dataTable thead {
+  background-color: #3498db;
+  color: white;
+}
+
+.dataTable tbody tr:hover {
+  background-color: #f5f5f5;
+}
+
+/* 图表容器 / Plot Containers */
+.plotly {
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+/* 进度条 / Progress Bar */
+.progress {
+  height: 10px;
+  border-radius: 5px;
+  background-color: #ecf0f1;
+}
+
+.progress-bar {
+  background-color: #3498db;
+}
+
+/* 通知 / Notifications */
+.shiny-notification {
+  border-radius: 5px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* 标签页 / Tabs */
+.nav-tabs .nav-link {
+  border-radius: 5px 5px 0 0;
+  color: #7f8c8d;
+  transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link.active {
+  color: #3498db;
+  border-bottom: 2px solid #3498db;
+}
+
+/* 卡片样式 / Card Styles */
+.card {
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  border: none;
+}
+
+.card-header {
+  background-color: #fff;
+  border-bottom: 1px solid #eee;
+  font-weight: 600;
+}
+
+/* 警告框 / Alert Boxes */
+.alert {
+  border-radius: 5px;
+  border: none;
+}
+
+.alert-info {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+
+.alert-success {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.alert-warning {
+  background-color: #fff3e0;
+  color: #ef6c00;
+}
+
+.alert-danger {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+/* 图例样式 / Legend Styles */
+.legend-item {
+  display: inline-block;
+  margin-right: 15px;
+}
+
+.legend-color {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  margin-right: 5px;
+}
+
+/* 响应式 / Responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    width: 250px;
+    left: -250px;
+    transition: left 0.3s ease;
+  }
+  
+  .sidebar.active {
+    left: 0;
+  }
+  
+  .small-box h3 {
+    font-size: 1.5em;
+  }
+}
+
+/* 加载动画 / Loading Animation */
+.loading-spinner {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 自定义颜色 / Custom Colors */
+.text-primary { color: #3498db !important; }
+.text-success { color: #27ae60 !important; }
+.text-warning { color: #f39c12 !important; }
+.text-danger { color: #e74c3c !important; }
+.text-info { color: #17a2b8 !important; }
+
+.bg-primary { background-color: #3498db !important; }
+.bg-success { background-color: #27ae60 !important; }
+.bg-warning { background-color: #f39c12 !important; }
+.bg-danger { background-color: #e74c3c !important; }
+
+/* 工具提示 / Tooltips */
+.tooltip-inner {
+  background-color: #2c3e50;
+  border-radius: 5px;
+  padding: 8px 12px;
+}
+
+/* 分隔线 / Dividers */
+hr {
+  border-top: 1px solid #eee;
+  margin: 20px 0;
+}
+
+/* 代码块 / Code Blocks */
+pre {
+  background-color: #f8f9fa;
+  border-radius: 5px;
+  padding: 15px;
+  font-size: 0.9em;
+}
+
+/* 打印样式 / Print Styles */
+@media print {
+  .sidebar, .navbar {
+    display: none;
+  }
+  
+  .main-content {
+    margin: 0;
+    padding: 0;
+  }
+}
