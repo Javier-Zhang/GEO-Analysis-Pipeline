@@ -1,0 +1,215 @@
+---
+title: "GEO Data Analysis Report / GEO数据分析报告"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    theme: flatly
+    highlight: tango
+    code_folding: hide
+params:
+  gse_id: "Unknown"
+  data_type: "microarray"
+  qc_results: NULL
+  deg_results: NULL
+  annotation_results: NULL
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(ggplot2)
+library(plotly)
+library(DT)
+library(pheatmap)
+library(RColorBrewer)
+```
+
+# 分析概览 / Analysis Overview {.tabset}
+
+## 基本信息 / Basic Information
+
+| 项目 / Item | 内容 / Content |
+|-------------|----------------|
+| **数据集 / Dataset** | `r params$gse_id` |
+| **数据类型 / Data Type** | `r params$data_type` |
+| **分析日期 / Date** | `r Sys.Date()` |
+| **R版本 / R Version** | `r R.version.string` |
+
+## 分析流程 / Analysis Pipeline
+
+```{r analysis-flow}
+cat("
+1. 数据下载 / Data Download ✓
+2. 质量控制 / Quality Control ✓
+3. 数据标准化 / Normalization ✓
+4. 基因注释 / Annotation ✓
+5. 差异分析 / Differential Expression ✓
+6. 报告生成 / Report Generation ✓
+")
+```
+
+# 质量控制 / Quality Control
+
+```{r qc-section}
+if (!is.null(params$qc_results)) {
+  qc <- params$qc_results
+  
+  cat("## QC摘要 / QC Summary\n\n")
+  
+  cat(sprintf("- **样本数 / Samples:** %d\n", qc$summary$n_samples))
+  cat(sprintf("- **异常样本 / Outliers:** %d\n", qc$summary$n_outliers))
+  cat(sprintf("- **平均相关性 / Mean Correlation:** %.3f\n", qc$summary$mean_correlation))
+  
+  if (!is.null(qc$summary$pca_var_pc1)) {
+    cat(sprintf("- **PC1方差 / PC1 Variance:** %.1f%%\n", qc$summary$pca_var_pc1))
+  }
+} else {
+  cat("质控结果不可用 / QC results not available")
+}
+```
+
+```{r qc-plot, fig.width=10, fig.height=8}
+if (!is.null(params$qc_results) && !is.null(params$qc_results$pca_results)) {
+  pca_df <- data.frame(
+    PC1 = params$qc_results$pca_results$scores[, 1],
+    PC2 = params$qc_results$pca_results$scores[, 2],
+    Sample = rownames(params$qc_results$pca_results$scores)
+  )
+  
+  pca_df$IsOutlier <- pca_df$Sample %in% params$qc_results$outliers$all_outliers
+  
+  var_exp <- params$qc_results$pca_results$var_explained
+  
+  p <- ggplot(pca_df, aes(x = PC1, y = PC2, color = IsOutlier)) +
+    geom_point(size = 3) +
+    scale_color_manual(values = c("FALSE" = "steelblue", "TRUE" = "red"),
+                       labels = c("Normal / 正常", "Outlier / 异常")) +
+    theme_minimal() +
+    labs(
+      title = "PCA Plot with Outlier Detection / PCA图及异常检测",
+      x = paste0("PC1 (", round(var_exp[1], 1), "%)"),
+      y = paste0("PC2 (", round(var_exp[2], 1), "%)"),
+      color = "Status / 状态"
+    )
+  
+  print(p)
+}
+```
+
+# 差异表达分析 / Differential Expression {.tabset}
+
+```{r deg-section}
+if (!is.null(params$deg_results)) {
+  deg <- params$deg_results
+  
+  cat("## DEG摘要 / DEG Summary\n\n")
+  
+  cat(sprintf("- **总基因数 / Total Genes:** %d\n", deg$summary$n_total))
+  cat(sprintf("- **上调基因 / Up-regulated:** %d\n", deg$summary$n_up))
+  cat(sprintf("- **下调基因 / Down-regulated:** %d\n", deg$summary$n_down))
+  cat(sprintf("- **显著差异 / Significant:** %d\n", deg$summary$n_significant))
+  cat(sprintf("- **logFC阈值 / logFC Threshold:** %s\n", deg$summary$lfc_threshold))
+  cat(sprintf("- **P值阈值 / P-value Threshold:** %s\n", deg$summary$p_threshold))
+} else {
+  cat("差异分析结果不可用 / DEG results not available")
+}
+```
+
+## 火山图 / Volcano Plot
+
+```{r volcano-plot, fig.width=10, fig.height=8}
+if (!is.null(params$deg_results)) {
+  deg_table <- params$deg_results$deg_table
+  
+  logfc_col <- if ("logFC" %in% colnames(deg_table)) "logFC" else "log2FoldChange"
+  pval_col <- if ("adj.P.Val" %in% colnames(deg_table)) "adj.P.Val" else "padj"
+  
+  volcano_df <- data.frame(
+    logFC = deg_table[[logfc_col]],
+    negLogP = -log10(deg_table[[pval_col]]),
+    Status = deg_table$DEG_status,
+    Gene = rownames(deg_table)
+  )
+  
+  volcano_df$negLogP[is.infinite(volcano_df$negLogP)] <- 
+    max(volcano_df$negLogP[is.finite(volcano_df$negLogP)], na.rm = TRUE) + 1
+  
+  lfc_thresh <- params$deg_results$summary$lfc_threshold
+  p_thresh <- params$deg_results$summary$p_threshold
+  
+  p <- ggplot(volcano_df, aes(x = logFC, y = negLogP, color = Status)) +
+    geom_point(alpha = 0.6, size = 1.5) +
+    scale_color_manual(values = c("Down" = "#3366CC", "Not Significant" = "grey60", "Up" = "#CC3366")) +
+    geom_vline(xintercept = c(-lfc_thresh, lfc_thresh), linetype = "dashed", color = "grey40") +
+    geom_hline(yintercept = -log10(p_thresh), linetype = "dashed", color = "grey40") +
+    theme_minimal() +
+    labs(
+      title = "Volcano Plot / 火山图",
+      x = "log2 Fold Change",
+      y = "-log10(adjusted P-value)",
+      color = "Status / 状态"
+    )
+  
+  print(p)
+}
+```
+
+## Top差异基因 / Top DEGs
+
+```{r deg-table}
+if (!is.null(params$deg_results)) {
+  deg_table <- params$deg_results$deg_table
+  
+  # 筛选显著差异基因 / Filter significant DEGs
+  sig_degs <- deg_table[deg_table$DEG_status != "Not Significant", ]
+  
+  if (nrow(sig_degs) > 0) {
+    logfc_col <- if ("logFC" %in% colnames(sig_degs)) "logFC" else "log2FoldChange"
+    
+    # 选择top 50基因 / Select top 50 genes
+    top_degs <- head(sig_degs[order(abs(sig_degs[[logfc_col]]), decreasing = TRUE), ], 50)
+    
+    DT::datatable(
+      top_degs,
+      options = list(pageLength = 15, scrollX = TRUE),
+      rownames = TRUE
+    ) %>%
+      DT::formatRound(columns = which(sapply(top_degs, is.numeric)), digits = 3)
+  } else {
+    cat("没有显著差异基因 / No significant DEGs")
+  }
+}
+```
+
+# 分析参数 / Analysis Parameters
+
+```{r parameters}
+cat("## 使用的参数 / Parameters Used\n\n")
+
+cat("### 质控参数 / QC Parameters\n")
+cat("- 异常值检测阈值 / Outlier threshold: 0.8\n")
+cat("- 相关性方法 / Correlation method: Pearson\n\n")
+
+if (!is.null(params$deg_results)) {
+  cat("### 差异分析参数 / DEG Parameters\n")
+  cat(sprintf("- logFC阈值 / logFC threshold: %s\n", params$deg_results$summary$lfc_threshold))
+  cat(sprintf("- P值阈值 / P-value threshold: %s\n", params$deg_results$summary$p_threshold))
+  cat(sprintf("- 校正方法 / Adjustment: %s\n", 
+              ifelse(is.null(params$deg_results$summary$adjust_method), "BH", params$deg_results$summary$adjust_method)))
+}
+```
+
+# 会话信息 / Session Info
+
+```{r session-info}
+sessionInfo()
+```
+
+---
+
+<div style="text-align: center; margin-top: 50px;">
+<p><em>Report generated by GEO-Analysis-Pipeline</em></p>
+<p><em>报告由GEO-Analysis-Pipeline生成</em></p>
+</div>

@@ -1,0 +1,64 @@
+Package: GEOAnalysisPipeline
+Type: Package
+Title: GEO Data Analysis Pipeline for Microarray and RNA-seq
+Version: 1.0.0
+Authors@R: 
+    person("GEO-Analysis-Pipeline", "Team", 
+           email = "example@example.com",
+           role = c("aut", "cre"))
+Description: A comprehensive Shiny-based pipeline for analyzing Gene Expression 
+    Omnibus (GEO) datasets. Supports both microarray and RNA-seq data analysis
+    including quality control, normalization, differential expression analysis,
+    and report generation. Includes example workflows for cervical cancer research.
+    完整的GEO数据分析流程，支持微阵列和RNA-seq数据分析，包含质控、标准化、
+    差异表达分析和报告生成。包含宫颈癌研究示例工作流。
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.2.3
+Depends: 
+    R (>= 4.0.0)
+Imports:
+    shiny (>= 1.7.0),
+    shinydashboard,
+    shinyWidgets,
+    Biobase,
+    GEOquery,
+    limma,
+    affy,
+    ggplot2,
+    plotly,
+    pheatmap,
+    RColorBrewer,
+    DT,
+    rmarkdown,
+    knitr,
+    dplyr,
+    tidyr
+Suggests:
+    DESeq2,
+    edgeR,
+    sva,
+    gcrma,
+    vsn,
+    org.Hs.eg.db,
+    org.Mm.eg.db,
+    AnnotationDbi,
+    biomaRt,
+    openxlsx,
+    testthat (>= 3.0.0),
+    ggrepel,
+    reshape2
+biocViews:
+    GeneExpression,
+    Microarray,
+    RNASeq,
+    DifferentialExpression,
+    QualityControl,
+    Normalization,
+    Annotation,
+    Visualization,
+    ReportWriting
+URL: https://github.com/Javier-Zhang/GEO-Analysis-Pipeline
+BugReports: https://github.com/Javier-Zhang/GEO-Analysis-Pipeline/issues
+VignetteBuilder: knitr
